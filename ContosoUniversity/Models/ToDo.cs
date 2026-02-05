@@ -11,11 +11,11 @@ namespace ContosoUniversity.Models
         [Required]
         [StringLength(200, MinimumLength = 1)]
         [Display(Name = "Title")]
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
 
         [StringLength(1000)]
         [Display(Name = "Description")]
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         [Required]
         [Display(Name = "Is Completed")]

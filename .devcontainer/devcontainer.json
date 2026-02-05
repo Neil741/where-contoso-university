@@ -1,0 +1,27 @@
+{
+  "name": "Contoso University .NET 8",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "sqlserver",
+  "workspaceFolder": "/workspace",
+  "features": {
+    "ghcr.io/devcontainers/features/dotnet:2": {
+      "version": "8.0",
+      "installUsingApt": true
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csharp",
+        "ms-dotnettools.csdevkit",
+        "ms-mssql.mssql"
+      ],
+      "settings": {
+        "dotnet.defaultSolution": "ContosoUniversity/ContosoUniversity.sln"
+      }
+    }
+  },
+  "postCreateCommand": "dotnet restore ContosoUniversity/ContosoUniversity.csproj",
+  "remoteUser": "root"
+}
