@@ -1,0 +1,71 @@
+name: Deploy to Azure App Service
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  AZURE_WEBAPP_NAME: contosouniversity-app
+  AZURE_WEBAPP_PACKAGE_PATH: './ContosoUniversity'
+  DOTNET_VERSION: '8.0.x'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore dependencies
+      run: dotnet restore ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/ContosoUniversity.csproj
+    
+    - name: Build
+      run: dotnet build ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/ContosoUniversity.csproj --configuration Release --no-restore
+    
+    - name: Test
+      run: |
+        if [ -d "ContosoUniversity.Tests" ]; then
+          dotnet test ContosoUniversity.Tests/ContosoUniversity.Tests.csproj --no-build --verbosity normal
+        else
+          echo "No tests found, skipping..."
+        fi
+    
+    - name: Publish
+      run: dotnet publish ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/ContosoUniversity.csproj -c Release -o ./publish
+    
+    - name: Upload artifact for deployment
+      uses: actions/upload-artifact@v4
+      with:
+        name: .net-app
+        path: ./publish
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    
+    steps:
+    - name: Download artifact from build job
+      uses: actions/download-artifact@v4.1.8
+      with:
+        name: .net-app
+    
+    - name: Deploy to Azure Web App
+      id: deploy-to-webapp
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: ${{ env.AZURE_WEBAPP_NAME }}
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        package: .
