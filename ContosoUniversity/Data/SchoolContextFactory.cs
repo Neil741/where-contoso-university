@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using System.Configuration;
+using Microsoft.Extensions.Configuration;
+using System.IO;
 
 namespace ContosoUniversity.Data
 {
@@ -7,7 +8,12 @@ namespace ContosoUniversity.Data
     {
         public static SchoolContext Create()
         {
-            var connectionString = ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false)
+                .Build();
+                
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
             var optionsBuilder = new DbContextOptionsBuilder<SchoolContext>();
             optionsBuilder.UseSqlServer(connectionString);
             
